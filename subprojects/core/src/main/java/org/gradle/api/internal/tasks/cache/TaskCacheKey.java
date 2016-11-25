@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-public interface TaskCacheKey {
+import java.io.Serializable;
+
+public interface TaskCacheKey extends Serializable {
     String getHashCode();
 }

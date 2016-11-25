@@ -31,15 +31,15 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
     private final TaskInternal task;
 
     public InputPropertiesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
-        this.properties = new HashMap<String, Object>(task.getInputs().getProperties());
-        currentExecution.setInputProperties(properties);
+        currentExecution.setInputProperties(new HashMap<String, Object>(task.getInputs().getProperties()));
+        this.properties = currentExecution.getInputPropertiesCacheKey();
         this.previousExecution = previousExecution;
         this.task = task;
     }
 
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
-        DiffUtil.diff(properties, previousExecution.getInputProperties(), new ChangeListener<Map.Entry<String, Object>>() {
+        DiffUtil.diff(properties, previousExecution.getInputPropertiesCacheKey(), new ChangeListener<Map.Entry<String, Object>>() {
             public void added(Map.Entry<String, Object> element) {
                 changes.add(new DescriptiveChange("Input property '%s' has been added for %s", element.getKey(), task));
             }

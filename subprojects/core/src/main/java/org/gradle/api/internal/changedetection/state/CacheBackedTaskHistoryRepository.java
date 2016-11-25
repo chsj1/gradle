@@ -27,6 +27,7 @@ import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.internal.tasks.properties.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskOutputFilePropertySpec;
 import org.gradle.cache.PersistentIndexedCache;
@@ -275,7 +276,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
             setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
             // Take copy of input properties map
-            setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
+            setInputPropertiesCacheKey(new HashMap<String, TaskCacheKey>(taskExecutionSnapshot.getInputProperties()));  // adjust here
             setOutputPropertyNamesForCacheKey(taskExecutionSnapshot.getCacheableOutputProperties());
             setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
             inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
@@ -344,7 +345,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 getDeclaredOutputFilePaths(),
                 getTaskClassLoaderHash(),
                 getTaskActionsClassLoaderHash(),
-                new HashMap<String, Object>(getInputProperties()),
+                new HashMap<String, TaskCacheKey>(getInputPropertiesCacheKey()),  // HERE generate an HashMap of cacheKeys
                 inputFilesSnapshotIds,
                 discoveredFilesSnapshotId,
                 outputFilesSnapshotIds);
@@ -388,7 +389,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ImmutableSet<String> declaredOutputFilePaths = declaredOutputFilePathsBuilder.build();
 
                 boolean hasInputProperties = decoder.readBoolean();
-                Map<String, Object> inputProperties;
+                Map<String, TaskCacheKey> inputProperties;
                 if (hasInputProperties) {
                     inputProperties = inputPropertiesSerializer.read(decoder);
                 } else {

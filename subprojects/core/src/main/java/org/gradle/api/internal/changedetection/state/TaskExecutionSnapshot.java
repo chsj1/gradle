@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.hash.HashCode;
+import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 
 import java.util.Map;
 
@@ -30,14 +31,14 @@ public class TaskExecutionSnapshot {
     private final HashCode taskClassLoaderHash;
     private final HashCode taskActionsClassLoaderHash;
     // Should be declared as immutable map, however some entries are null and entries are not guaranteed to be immutable
-    private final Map<String, Object> inputProperties;
+    private final Map<String, TaskCacheKey> inputProperties;
     private final ImmutableSet<String> cacheableOutputProperties;
     private final ImmutableSet<String> declaredOutputFilePaths;
     private final ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
     private final ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
     private final Long discoveredFilesSnapshotId;
 
-    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, HashCode taskActionsClassLoaderHash, Map<String, Object> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
+    public TaskExecutionSnapshot(String taskClass, ImmutableSet<String> cacheableOutputProperties, ImmutableSet<String> declaredOutputFilePaths, HashCode taskClassLoaderHash, HashCode taskActionsClassLoaderHash, Map<String, TaskCacheKey> inputProperties, ImmutableSortedMap<String, Long> inputFilesSnapshotIds, Long discoveredFilesSnapshotId, ImmutableSortedMap<String, Long> outputFilesSnapshotIds) {
         this.taskClass = taskClass;
         this.cacheableOutputProperties = cacheableOutputProperties;
         this.declaredOutputFilePaths = declaredOutputFilePaths;
@@ -65,7 +66,7 @@ public class TaskExecutionSnapshot {
         return inputFilesSnapshotIds;
     }
 
-    public Map<String, Object> getInputProperties() {
+    public Map<String, TaskCacheKey> getInputProperties() {
         return inputProperties;
     }
 

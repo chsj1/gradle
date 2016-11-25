@@ -29,9 +29,12 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * The state for a single task execution.
@@ -40,7 +43,7 @@ public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
-    private Map<String, Object> inputProperties;
+    private Map<String, TaskCacheKey> inputPropertiesCacheKey;  // Could we convert Object to TaskCacheKey
     private Iterable<String> outputPropertyNamesForCacheKey;
     private ImmutableSet<String> declaredOutputFilePaths;
 
@@ -95,12 +98,15 @@ public abstract class TaskExecution {
         this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
-    public Map<String, Object> getInputProperties() {
-        return inputProperties;
-    }
-
     public void setInputProperties(Map<String, Object> inputProperties) {
-        this.inputProperties = inputProperties;
+        SortedMap<String, TaskCacheKey> result = new TreeMap<String, TaskCacheKey>(new HashMap<String, TaskCacheKey>(inputProperties.size()));
+        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
+            TaskCacheKeyBuilder builder = new DefaultTaskCacheKeyBuilder();
+            Object value = entry.getValue();
+            appendToCacheKey(builder, value);
+            result.put(entry.getKey(), builder.build());
+        }
+        this.inputPropertiesCacheKey = result;
     }
 
     /**
@@ -128,13 +134,13 @@ public abstract class TaskExecution {
         builder.putBytes(taskClassLoaderHash.asBytes());
         builder.putBytes(taskActionsClassLoaderHash.asBytes());
 
-        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
-
-        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
+        for (Map.Entry<String, TaskCacheKey> entry : inputPropertiesCacheKey.entrySet()) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
-            appendToCacheKey(builder, value);
+            appendToCacheKey(builder, value);  // TODO: Should we handle the fact that Object is an TaskCacheKey to save time?
         }
+
+        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 
         for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
             builder.putString(entry.getKey());
@@ -147,6 +153,14 @@ public abstract class TaskExecution {
         }
 
         return builder.build();
+    }
+
+    public Map<String, TaskCacheKey> getInputPropertiesCacheKey() {
+        return inputPropertiesCacheKey;
+    }
+
+    public void setInputPropertiesCacheKey(Map<String, TaskCacheKey> inputPropertiesCacheKey) {
+        this.inputPropertiesCacheKey = inputPropertiesCacheKey;
     }
 
     private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {

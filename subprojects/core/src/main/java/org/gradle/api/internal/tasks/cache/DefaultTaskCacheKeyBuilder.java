@@ -121,6 +121,22 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
         public String toString() {
             return hashCode.toString();
         }
+
+        @Override
+        public int hashCode() {
+            return hashCode.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) { return false; }
+            if (obj == this) { return true; }
+            if (obj.getClass() != getClass()) {
+                return false;
+            }
+            DefaultTaskCacheKey rhs = (DefaultTaskCacheKey) obj;
+            return hashCode.equals(rhs.hashCode);
+        }
     }
 
     private static void log(String type, Object value) {
